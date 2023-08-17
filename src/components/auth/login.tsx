@@ -1,0 +1,139 @@
+import React, { useState, useEffect } from 'react';
+import Head from 'next/head';
+import { useRouter } from 'next/router';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useAuth } from '@/context/AuthContext';
+import { z } from 'zod';
+import { Button, Grid, TextField, Paper, Typography } from '@mui/material';
+import axios from 'axios';
+
+const loginSchema = z.object({
+  username: z.string().nonempty('Username is required'),
+  password: z.string().min(6, 'Password must be at least 6 characters').nonempty('Password is required'),
+});
+
+export default function Login() {
+  const { login, isLoggedIn } = useAuth();
+  const router = useRouter();
+  const [token, settoken] = useState<string | null>(null);
+
+  const [formState, setFormState] = useState({
+    title: 'Welcome, please login!',
+    username: '',
+    password: '',
+    errors: { username: '', password: '' },
+  });
+
+  const resetForm = (event) => {
+    event.preventDefault();
+    setFormState({
+      title: 'Welcome, please login!',
+      username: '',
+      password: '',
+      errors: { username: '', password: '' },
+    });
+  };
+
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    try {
+      loginSchema.parse({
+        username: formState.username,
+        password: formState.password,
+      });
+  
+      const response = await axios.post(
+        'http://127.0.0.1:8000/api/token/login/',
+        { username, password }
+      );
+      const { token } = response.data;
+      settoken(token);
+      localStorage.setItem('token', token);
+      console.log('Login successful:', response.data);
+      toast.success('Login successfull');
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const usernameError = error.issues.find((issue) => issue.path[0] === 'username');
+        const passwordError = error.issues.find((issue) => issue.path[0] === 'password');
+        setFormState((prevState) => ({
+          ...prevState,
+          errors: {
+            username: usernameError ? usernameError.message : '',
+            password: passwordError ? passwordError.message : '',
+          },
+        }));
+      }
+      router.push('/auth/login');
+    }
+  };
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      router.push('/');
+    }
+  }, [isLoggedIn, router]);
+
+  const { title, username, password, errors } = formState;
+
+  return (
+    <>    
+          <Grid item xs={12} sm={6} md={3}>
+            <Paper elevation={6} sx={{ p: 4 }}>
+              <Typography variant="h4" sx={{ mb: 2, textAlign: 'center' }}>
+                {title}
+              </Typography>
+              <form onSubmit={handleLogin}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      variant="outlined"
+                      label="Username Address"
+                      name="username"
+                      type="username"
+                      value={username}
+                      onChange={(event) =>
+                        setFormState((prevState) => ({ ...prevState, username: event.target.value }))
+                      }
+                      error={!!errors.username}
+                      helperText={errors.username}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      variant="outlined"
+                      label="Password"
+                      name="password"
+                      type="password"
+                      value={password}
+                      onChange={(event) =>
+                        setFormState((prevState) => ({ ...prevState, password: event.target.value }))
+                      }
+                      error={!!errors.password}
+                      helperText={errors.password}
+                    />
+                  </Grid>          
+                  <Grid item xs={12}>
+                    <Button fullWidth variant="outlined" color="primary" type="submit">
+                      Login
+                    </Button>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Button fullWidth variant="outlined" onClick={resetForm}>
+                      Reset
+                    </Button>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Button fullWidth variant="text" onClick={() => router.push('/auth/register')}>
+                      Register
+                    </Button>
+                  </Grid>
+                </Grid>
+              </form>
+            </Paper>
+          </Grid>
+    </>
+  );
+}
