@@ -47,24 +47,23 @@ export default function Register() {
     console.log("Test inside front page")
     try {
       registerSchema.parse(formData);
-
+  
       // Check if password and confirmPassword match
       if (formData.password !== formData.confirmPassword) {
         setErrors({ ...errors, password: 'Passwords do not match' });
         return;
       }
-
+  
       // Update your register function to handle file upload (you'll need to modify this on your server side too)
-      const response = await axios.post('http://127.0.0.1:8000/api/token/register/', {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-      });
-      
+      await register(
+        formData.first_name,
+        formData.last_name,
+        formData.username,
+        formData.email,
+        formData.password,
+      );
       toast.success('User registered successfully');
-      console.log('Registration successful:', response.data);
+      router.push('/auth/login');
     } catch (error) {
       if (error instanceof z.ZodError) {
         const emailError = error.issues.find((issue) => issue.path[0] === 'email');
@@ -76,7 +75,7 @@ export default function Register() {
       }
     }
   };
-
+  
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData({ ...formData, [name]: value });

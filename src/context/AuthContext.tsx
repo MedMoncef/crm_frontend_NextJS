@@ -5,7 +5,7 @@ const TOKEN_KEY = 'Altair123456';
 interface AuthContextType {
   isLoggedIn: boolean;
   token: string | null;
-  login: (email: string, password: string) => void;
+  login: (username: string, password: string) => void;
   register: (
     first_name: string,
     last_name: string,
@@ -43,11 +43,11 @@ export const AuthProvider: React.FC = ({ children }) => {
     checkAuthState();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (username: string, password: string) => {
     try {
       const response = await axios.post(
-        'http://localhost:7000/loginUser',
-        { email, password }
+        'http://127.0.0.1:8000/api/token/login/',
+        { username, password }
       );
       const { token } = response.data;
       settoken(token);
@@ -60,7 +60,6 @@ export const AuthProvider: React.FC = ({ children }) => {
   };
 
   const register = async (first_name: string, last_name: string, username: string, email: string, password: string) => {
-    console.log("Test inside back page")
     try {
       const response = await axios.post('http://127.0.0.1:8000/api/token/register/', {
         first_name,

@@ -43,15 +43,9 @@ export default function Login() {
         password: formState.password,
       });
   
-      const response = await axios.post(
-        'http://127.0.0.1:8000/api/token/login/',
-        { username, password }
-      );
-      const { token } = response.data;
-      settoken(token);
-      localStorage.setItem('token', token);
-      console.log('Login successful:', response.data);
-      toast.success('Login successfull');
+      await login(username, password);
+      toast('Welcome Back!');
+      router.push('/');
     } catch (error) {
       if (error instanceof z.ZodError) {
         const usernameError = error.issues.find((issue) => issue.path[0] === 'username');
@@ -89,7 +83,7 @@ export default function Login() {
                     <TextField
                       fullWidth
                       variant="outlined"
-                      label="Username Address"
+                      label="Username"
                       name="username"
                       type="username"
                       value={username}

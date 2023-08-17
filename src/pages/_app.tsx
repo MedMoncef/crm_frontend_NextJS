@@ -8,10 +8,12 @@ import { TableProvider } from '@/context/TableContext';
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <ThemeProvider>
+      <AuthProvider>
 
             <Navbar />
             <Component {...pageProps} />
 
+    </AuthProvider>
     </ThemeProvider>
   )
 }
